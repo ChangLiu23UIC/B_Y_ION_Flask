@@ -65,11 +65,51 @@ def result():
     try:
         peptide = request.form['peptide']
         df = cal_b_y_ion_mass(peptide)
-        html = render_template_string(df.to_html(classes='data'))
+        # Use Pandas to convert the DataFrame to HTML
+        df_html = df.to_html(classes='dataframe', border=0)
+
+        # Render the HTML with styling
+        html = render_template_string('''
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                body, html {
+                    height: 100%;
+                    margin: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    font-family: Arial, sans-serif;
+                }
+                .dataframe {
+                    border-collapse: collapse;
+                    width: 60%;
+                    margin: auto;
+                }
+                .dataframe, .dataframe th, .dataframe td {
+                    border: 1px solid #ddd;
+                    text-align: left;
+                    padding: 8px;
+                }
+                .dataframe th {
+                    background-color: #f2f2f2;
+                }
+                .dataframe tr:nth-child(even){background-color: #f9f9f9;}
+                .dataframe tr:hover {background-color: #f1f1f1;}
+            </style>
+        </head>
+        <body>
+            {{ table|safe }}
+        </body>
+        </html>
+        ''', table=df_html)
+
         return html
     except Exception as e:
         return f"Error processing the request: {str(e)}"
-
 
 if __name__ == '__main__':
 
