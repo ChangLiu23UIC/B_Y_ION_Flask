@@ -1,38 +1,24 @@
 from flask import Flask, request, render_template_string
-import pandas as pd
-from main import *
+from b_y_ion import *
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET', 'POST'])
-def home():
-    if request.method == 'POST':
-        user_input = request.form['input_string']
-        df = cal_b_y_ion_mass(user_input)
-        return render_template_string("""
-        <html>
-            <head>
-                <title>DataFrame Output</title>
-            </head>
-            <body>
-                <h1>Resulting DataFrame</h1>
-                {{ data_frame | safe }}
-                <br>
-                <a href="/">Go Back</a>
-            </body>
-        </html>
-        """, data_frame=df.to_html())
-    return '''
-    <html>
-        <body>
-            <h1>Enter String Input</h1>
-            <form method="post">
-                String Input: <input type="text" name="input_string"><br>
-                <input type="submit" value="Submit">
-            </form>
-        </body>
-    </html>
+@app.route('/')
+def form():
+    form_html = '''
+    <form action="/result" method="post">
+        <label for="peptide">Enter Peptide Sequence:</label>
+        <input type="text" id="peptide" name="peptide">
+        <input type="submit" value="Calculate">
+    </form>
     '''
+    return form_html
+
+@app.route('/result', methods=['POST'])
+def result():
+    peptide = request.form['peptide']
+    df = cal_b_y_ion_mass(peptide)
+    return render_template_string(df.to_html(classes='data'))
 
 if __name__ == '__main__':
     app.run(debug=True)
