@@ -6,19 +6,71 @@ app = Flask(__name__)
 @app.route('/')
 def form():
     form_html = '''
-    <form action="/result" method="post">
-        <label for="peptide">Enter Peptide Sequence:</label>
-        <input type="text" id="peptide" name="peptide">
-        <input type="submit" value="Calculate">
-    </form>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        form {
+            border: 1px solid #ccc;
+            padding: 20px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+        label, input {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    </head>
+    <body>
+        <form action="/result" method="post">
+            <label for="peptide">Enter Peptide Sequence:</label>
+            <input type="text" id="peptide" name="peptide">
+            <input type="submit" value="Calculate">
+        </form>
+    </body>
+    </html>
     '''
     return form_html
 
 @app.route('/result', methods=['POST'])
 def result():
-    peptide = request.form['peptide']
-    df = cal_b_y_ion_mass(peptide)
-    return render_template_string(df.to_html(classes='data'))
+    try:
+        peptide = request.form['peptide']
+        df = cal_b_y_ion_mass(peptide)
+        html = render_template_string(df.to_html(classes='data'))
+        return html
+    except Exception as e:
+        return f"Error processing the request: {str(e)}"
+
 
 if __name__ == '__main__':
-    app.run(debug=True)
+
+    app.run()
