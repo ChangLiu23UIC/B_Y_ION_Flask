@@ -3,6 +3,11 @@ import pandas as pd
 
 
 def cal_b_y_ion_mass(peptide):
+    """
+    Takes the peptide sequence and return a dataframe of b and y ion mass
+    :param peptide: The peptide sequence
+    :return: the dataframe of mass of b and y ions
+    """
     sorted_list_of_mass = []
     protein_list = []
     protein_list[:0] = peptide.upper()
@@ -34,7 +39,10 @@ def cal_b_y_ion_mass(peptide):
 
     df = pd.DataFrame(info_table, columns = ["Seq", "#", "B", "Y", "#(+1)"])
 
-    return df
+    b_fragments = [peptide[:i] for i in range(1, len(peptide) + 1)]
+    y_fragments = [peptide[-i:] for i in range(1, len(peptide))]
 
-# if __name__ == '__main__':
-#     cal_b_y_ion_mass("PEPTIDE")
+    return df, b_fragments, y_fragments
+
+if __name__ == '__main__':
+    df, b_f, y_f = cal_b_y_ion_mass("PEPTIDE")

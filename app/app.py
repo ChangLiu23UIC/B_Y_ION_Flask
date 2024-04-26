@@ -64,7 +64,7 @@ def form():
 def result():
     try:
         peptide = request.form['peptide']
-        df = cal_b_y_ion_mass(peptide)
+        df, b_frag, y_frag = cal_b_y_ion_mass(peptide)
         # Use Pandas to convert the DataFrame to HTML
         df_html = df.to_html(classes='dataframe', border=0)
 
@@ -108,6 +108,7 @@ def result():
         ''', table=df_html)
 
         return html
+
     except Exception as e:
         return f"Error processing the request: {str(e)}"
 

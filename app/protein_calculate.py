@@ -33,16 +33,26 @@ monoisotopic = {
 }
 
 
-# the function to calculate the molecular weight of the individual amino acid
-def molecular_weight(molecule):
+def molecular_weight(molecule: str) -> float:
+    """
+    the function to calculate the molecular weight of the individual amino acid
+
+    :param molecule: string
+    :return: mass of the molecule
+    """
     return sum(
         monoisotopic[atom] * int(num or '1')
         for atom, num in refindall(r'([A-Z][a-z]*)(\d*)', molecule)
     )
 
 
-# this function is to turn the protein into the amino acid dictionary to know the count
-def protein_index(protein):
+def protein_index(protein:str) -> dict:
+    """
+    this function is to turn the protein into the amino acid dictionary to know the count
+
+    :param protein: string
+    :return: dict of amino acids with count as values
+    """
     protein_list = []
     protein_list[:0] = protein
     protein_peptides = {}
@@ -55,15 +65,20 @@ def protein_index(protein):
     return protein_peptides
 
 
-# this function will calculate the protein weight based on the number of each amino acid and its mass
+#
 def protein_weight(protein_dict):
+    """
+    this function will calculate the protein weight based on the number of each amino acid and its mass
+    :param protein_dict: protein dict of amino acids
+    :return: total mass of the protein
+    """
     protein_final = protein_index(protein_dict)
     mass = 0
     for i in protein_final:
         mass += molecular_weight(aminoacid[i]) * protein_final[i]
 
-    mass -= (len(protein_dict)-1)*18.0105
+    mass -= (len(protein_dict)-1)*18.010565
     return mass
 
 if __name__ == '__main__':
-    print(protein_weight("DDV"))
+    print(protein_weight("PEP"))
