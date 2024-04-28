@@ -1,4 +1,5 @@
 from re import findall as refindall
+from collections import defaultdict
 
 # the data of each amino acid and its composition
 aminoacid = {
@@ -46,6 +47,34 @@ def molecular_weight(molecule: str) -> float:
     )
 
 
+def molecular_composition(molecule: str) -> dict:
+    """
+    It gives the molecular count for each atom within an amino acid
+    :param molecule:
+    :return:
+    """
+    elements_counts = refindall('([A-Z][a-z]*)(\d*)', molecule)
+    return {element: int(count) if count else 1 for element, count in elements_counts}
+
+
+def peptide_composition(peptide:str):
+    """
+    This will count the composition of a peptide with all the atoms present
+    :param peptide:
+    :return:
+    """
+    peptide_composition = defaultdict(int)
+    for aa in peptide:
+        mf = molecular_composition(aminoacid[aa])
+        for element, count in mf.items():
+            peptide_composition[element] += count
+
+    # Remove the waters when they do peptide bonds
+    peptide_composition["H"] -= 2*(len(peptide)-1)
+    peptide_composition["O"] -= len(peptide)-1
+
+    return peptide_composition
+
 def protein_index(protein:str) -> dict:
     """
     this function is to turn the protein into the amino acid dictionary to know the count
@@ -80,5 +109,8 @@ def protein_weight(protein_dict):
     mass -= (len(protein_dict)-1)*18.010565
     return mass
 
+
 if __name__ == '__main__':
-    print(protein_weight("PEP"))
+    print(protein_weight("PEPTIDE"))
+    am = peptide_composition("PEPTIDEMAMIMIASANAGI")
+
