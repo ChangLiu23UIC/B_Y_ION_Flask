@@ -7,7 +7,7 @@ from scipy.stats import multinomial
 from itertools import combinations_with_replacement, product
 from collections import Counter
 import numpy as np
-from math import comb
+import itertools
 
 
 
@@ -40,47 +40,31 @@ def read_isotope_csv(filename:str) -> dict:
 
 
 
-def calculate_isotopic_variants(molecular_formula, isotopes, max_changes=10):
-    # Calculate base mass using the most abundant isotope
-    base_mass = sum(isotopes[element][0][0] * count for element, count in molecular_formula.items())
+def calculate_isotopic_variants(composition, isotopes,mono_mass, max_changes):
+    # Create a list of elements and the number of each in the peptide
+    elements = list(itertools.chain.from_iterable([[elem] * count for elem, count in composition.items()]))
+    variants = {0: (mono_mass, 1.0)}  # Start with monoisotopic mass
 
-    # Generate all possible isotope substitutions for each element
-    isotope_combinations = {element: list(combinations_with_replacement(isotopes[element], count))
-                            for element, count in molecular_formula.items()}
+    # Calculate all variants for up to max_changes isotopic substitutions
+    for change in range(1, max_changes + 1):
+        for subs in itertools.combinations_with_replacement(elements, change):
+            mass_diff = sum(isotopes[elem][1][0] - isotopes[elem][0][0] for elem in subs)
+            prob = np.prod([isotopes[elem][1][1] / isotopes[elem][0][1] for elem in subs])
+            mass = mono_mass + mass_diff
+            if change in variants:
+                variants[change].append((mass, prob))
+            else:
+                variants[change] = [(mass, prob)]
 
-    # Calculate the mass and abundance of each combination
-    results = {}
-    for num_changes in range(1, max_changes + 1):
-        for selected_elements in combinations_with_replacement(molecular_formula.keys(), num_changes):
-            for product_combination in product(*(isotope_combinations[element] for element in selected_elements)):
-                # Flatten the list of tuples and count the isotopes
-                isotopes_flat = [(element, iso) for element in selected_elements
-                                 for iso in product_combination[selected_elements.index(element)]]
-                isotope_counts = Counter(isotopes_flat)
+    # Sum the probabilities of variants with the same mass
+    summed_variants = defaultdict(float)
+    for change, var_list in variants.items():
+        for mass, prob in var_list:
+            summed_variants[mass] += prob
 
-                # Calculate mass and abundance for the current combination
-                mass = base_mass + sum((iso_mass - isotopes[element][0][0]) * isotope_counts[(element, (iso_mass, iso_abundance))]
-                                       for element, (iso_mass, iso_abundance) in isotopes_flat)
-
-                abundance = np.prod([iso_abundance ** isotope_counts[(element, (iso_mass, iso_abundance))]
-                                     for element, (iso_mass, iso_abundance) in isotopes_flat])
-
-                # Adjust for the number of identical isotopes in the combination
-                for (element, (iso_mass, _)), count in isotope_counts.items():
-                    if count > 1:
-                        abundance *= comb(molecular_formula[element], count)
-
-                # If this mass has already been calculated, add the abundances
-                if mass in results:
-                    results[mass] += abundance
-                else:
-                    results[mass] = abundance
-
-    # Normalize the abundances to sum to 1 (or 100%)
-    total_abundance = sum(results.values())
-    normalized_results = {mass: abundance / total_abundance for mass, abundance in results.items()}
-
-    return normalized_results
+    # Sort variants by mass and convert to list of tuples
+    sorted_variants = sorted(summed_variants.items())
+    return sorted_variants
 
 
 
