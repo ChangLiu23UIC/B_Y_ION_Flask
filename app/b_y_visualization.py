@@ -8,10 +8,11 @@ from itertools import combinations_with_replacement, product
 from collections import Counter
 import numpy as np
 import itertools
+import math
+import itertools
+from collections import defaultdict
 
-
-
-def read_isotope_csv(filename:str) -> dict:
+def read_isotope_csv(filename: str) -> dict:
     """
     This will get a dictionary of abundances and mass for each of the isotope of the
     :param filename: str
@@ -21,11 +22,10 @@ def read_isotope_csv(filename:str) -> dict:
     isotopes = pd.read_csv("isotope.csv")
     for index, item in isotopes.iterrows():
         if item["Name"] in isotope_dict:
-            isotope_dict[item["Name"]].append((item["Mass"],item["Abundance"]))
+            isotope_dict[item["Name"]].append((item["Mass"], item["Abundances"]))
         else:
-            isotope_dict[item["Name"]] = [(item["Mass"],item["Abundance"])]
+            isotope_dict[item["Name"]] = [(item["Mass"], item["Abundances"])]
     return isotope_dict
-
 
 
 # def isotope_weight(peptide:str, isotope_info:dict) -> float:
@@ -36,39 +36,10 @@ def read_isotope_csv(filename:str) -> dict:
 #     for atom, count in peptide_atom_counts.items():
 #         atom_isotopes = isotope_info[atom]
 
-        # distribution = random.multinomial()
+# distribution = random.multinomial()
 
 
-
-def calculate_isotopic_variants(composition, isotopes,mono_mass, max_changes):
-    # Create a list of elements and the number of each in the peptide
-    elements = list(itertools.chain.from_iterable([[elem] * count for elem, count in composition.items()]))
-    variants = {0: (mono_mass, 1.0)}  # Start with monoisotopic mass
-
-    # Calculate all variants for up to max_changes isotopic substitutions
-    for change in range(1, max_changes + 1):
-        for subs in itertools.combinations_with_replacement(elements, change):
-            mass_diff = sum(isotopes[elem][1][0] - isotopes[elem][0][0] for elem in subs)
-            prob = np.prod([isotopes[elem][1][1] / isotopes[elem][0][1] for elem in subs])
-            mass = mono_mass + mass_diff
-            if change in variants:
-                variants[change].append((mass, prob))
-            else:
-                variants[change] = [(mass, prob)]
-
-    # Sum the probabilities of variants with the same mass
-    summed_variants = defaultdict(float)
-    for change, var_list in variants.items():
-        for mass, prob in var_list:
-            summed_variants[mass] += prob
-
-    # Sort variants by mass and convert to list of tuples
-    sorted_variants = sorted(summed_variants.items())
-    return sorted_variants
-
-
-
-def isotope_visualize(b_frag:list, y_frag:list, isotope_dict:dict):
+def isotope_visualize(b_frag: list, y_frag: list, isotope_dict: dict):
     """
 
     :param b_frag:
@@ -77,7 +48,6 @@ def isotope_visualize(b_frag:list, y_frag:list, isotope_dict:dict):
     :return:
     """
     b_frag = []
-
 
 
 def spectrum_visualization(b_y_dataframe: pd.DataFrame):
@@ -91,7 +61,65 @@ def spectrum_visualization(b_y_dataframe: pd.DataFrame):
     mainTitle = 'Isotope Fragmentation Mass Spectrum'
 
 
+def get_combinations(isotope_num, atom_num):
+    """
+    Generate all combinations of isotopes that sum up to a certain atom number.
+
+    Parameters:
+    isotope_num (int): Number of isotopes/buckets to distribute atoms into.
+    atom_num (int): Total number of atoms to distribute.
+
+    Returns:
+    list: List of all possible combinations of isotopes.
+    """
+    def generate_combinations(remaining_atoms, remaining_isotopes, current_combination):
+        if remaining_isotopes == 0:
+            if remaining_atoms == 0:
+                return [current_combination]
+            else:
+                return []
+
+        combinations = []
+        for atoms in range(remaining_atoms + 1):
+            combinations.extend(
+                generate_combinations(
+                    remaining_atoms - atoms,
+                    remaining_isotopes - 1,
+                    current_combination + [atoms]
+                )
+            )
+        return combinations
+
+    return generate_combinations(atom_num, isotope_num, [])
+
+
+def isotope_calculator(peptide:str, iso_dict):
+    molecular_dict = peptide_composition(peptide)
+    for i in range(5):
+        comb_list = get_combinations(len(molecular_dict), i)
+        atom_list = [atoms for atoms, count in molecular_dict.items()]
+        for combs in comb_list:
+            # will show how many of the atoms are there ex: [(4,C),(0,H)]
+            features = list(zip(combs, atom_list))
+            C_prob = (math.comb(molecular_dict[features[0][1]], features[0][0])
+                      * pow(iso_dict[features[0][1]][1][1],features[0][0])
+                      * pow(iso_dict[features[0][1]][0][1],i - features[0][0]))
+            print("FEAUTURE is : ")
+            print(features)
+            print("Isotope dict is :")
+            print(iso_dict)
+            print("molecular formula is :")
+            print(molecular_dict)
+            print("All the possibile combination is:")
+            print(comb_list)
+
+            # print(C_prob)
+
 if __name__ == '__main__':
-    isotopes = pd.read_csv("isotope.csv")
     isotope_dict = read_isotope_csv("isotope.csv")
+    sample = peptide_composition("SAMPLER")
+    # samples = dict_to_formula(sample)
+    dd = isotope_calculator("SAMPLER", isotope_dict)
     # isotope_weight("PEPTIDE", isotope_dict)
+
+
