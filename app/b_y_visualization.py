@@ -93,6 +93,15 @@ def get_combinations(isotope_num, atom_num):
     return generate_combinations(atom_num, isotope_num, [])
 
 
+def multinomial_calc(n, *args):
+    if sum(args) != n:
+        raise ValueError("The sum of the categories must equal n.")
+    result = math.factorial(n)
+    for k in args:
+        result //= math.factorial(k)
+    return result
+
+
 def isotope_calculator(peptide:str, iso_dict):
     molecular_dict = peptide_composition(peptide)
     for i in range(5):
@@ -101,25 +110,25 @@ def isotope_calculator(peptide:str, iso_dict):
         for combs in comb_list:
             # will show how many of the atoms are there ex: [(4,C),(0,H)]
             features = list(zip(combs, atom_list))
-            C_prob = (math.comb(molecular_dict[features[0][1]], features[0][0])
-                      * pow(iso_dict[features[0][1]][1][1],features[0][0])
-                      * pow(iso_dict[features[0][1]][0][1],i - features[0][0]))
-            print("FEAUTURE is : ")
-            print(features)
-            print("Isotope dict is :")
-            print(iso_dict)
-            print("molecular formula is :")
-            print(molecular_dict)
-            print("All the possibile combination is:")
-            print(comb_list)
+            for nums, atom_name in features:
+                C_prob = (math.comb(molecular_dict[atom_name], nums)
+                          * pow(iso_dict[atom_name][1][1],nums)
+                          * pow(iso_dict[atom_name][0][1],i - nums))
+
 
             # print(C_prob)
+            
+
 
 if __name__ == '__main__':
     isotope_dict = read_isotope_csv("isotope.csv")
-    sample = peptide_composition("SAMPLER")
+    sample = peptide_composition("PEPTIDEMAMIMIASANAGI")
     # samples = dict_to_formula(sample)
-    dd = isotope_calculator("SAMPLER", isotope_dict)
+    # dd = isotope_calculator("SAMPLER", isotope_dict)
     # isotope_weight("PEPTIDE", isotope_dict)
 
+
+ 
+
+    results = ms_isotope_distribution(sample, isotope_dict)
 
