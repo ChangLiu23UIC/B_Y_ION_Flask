@@ -93,16 +93,43 @@ def get_combinations(isotope_num, atom_num):
     return generate_combinations(atom_num, isotope_num, [])
 
 
-def multinomial_calc(n, *args):
-    if sum(args) != n:
-        raise ValueError("The sum of the categories must equal n.")
-    result = math.factorial(n)
-    for k in args:
-        result //= math.factorial(k)
-    return result
+def multinomial_probability(n, outcomes):
+    """
+    Calculate the multinomial probability.
+
+    :param n: Total number of trials (int)
+    :param outcomes: A list of tuples, where each tuple contains the count and probability of each outcome.
+    :return: The multinomial probability (float)
+    """
+    if sum([count for count, _ in outcomes]) != n:
+        raise ValueError("The sum of the counts must equal n.")
+
+    # Calculate the factorial of n
+    factorial_n = math.factorial(n)
+
+    # Calculate the product of the factorials of the counts and the power of probabilities
+    denominator = 1
+    probability_product = 1
+    for count, probability in outcomes:
+        if count < 0 or probability < 0 or probability > 1:
+            raise ValueError("Counts and probabilities must be non-negative, and probabilities must not exceed 1.")
+        denominator *= math.factorial(count)
+        probability_product *= probability ** count
+
+    # Calculate the multinomial probability
+    multinomial_prob = factorial_n / denominator * probability_product
+    return multinomial_prob
+
+
+def prob_calc(atom, iso_num, total_num, iso_dict):
+
+    prob_list = [mass[1] for mass in iso_dict[atom]]
+    diff_num  = len(prob_list)-1
+    atom_comb = get_combinations(diff_num, iso_num)
 
 
 def isotope_calculator(peptide:str, iso_dict):
+    result = {}
     molecular_dict = peptide_composition(peptide)
     for i in range(5):
         comb_list = get_combinations(len(molecular_dict), i)
@@ -110,14 +137,6 @@ def isotope_calculator(peptide:str, iso_dict):
         for combs in comb_list:
             # will show how many of the atoms are there ex: [(4,C),(0,H)]
             features = list(zip(combs, atom_list))
-            for nums, atom_name in features:
-                C_prob = (math.comb(molecular_dict[atom_name], nums)
-                          * pow(iso_dict[atom_name][1][1],nums)
-                          * pow(iso_dict[atom_name][0][1],i - nums))
-
-
-            # print(C_prob)
-            
 
 
 if __name__ == '__main__':
@@ -126,9 +145,3 @@ if __name__ == '__main__':
     # samples = dict_to_formula(sample)
     # dd = isotope_calculator("SAMPLER", isotope_dict)
     # isotope_weight("PEPTIDE", isotope_dict)
-
-
- 
-
-    results = ms_isotope_distribution(sample, isotope_dict)
-
