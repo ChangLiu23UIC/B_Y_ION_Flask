@@ -16,7 +16,7 @@ def create_mass_spectrum_plot(ms_dict, output_path='mass_spectrum.html'):
 
     output_file(output_path)
 
-    p = figure(title="Mass Spectrum", x_axis_label='Mass M/e', y_axis_label='Intensity',
+    p = figure(title="Mass Spectrum", x_axis_label='Mass M/z', y_axis_label='Intensity',
                width=800, height=400, x_range=(min(masses) - 1, max(masses) + 1),
                y_range=(0, max(probabilities) + max(probabilities) * 0.1))
 
