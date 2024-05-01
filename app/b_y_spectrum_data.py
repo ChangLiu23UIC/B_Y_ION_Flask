@@ -1,8 +1,7 @@
-import pandas as pd
-from protein_calculate import *
 import math
 import itertools
-from collections import defaultdict
+import pandas as pd
+from b_y_ion import *
 
 def read_isotope_csv(filename: str) -> dict:
     """
@@ -222,13 +221,27 @@ def average_and_sum_keys(data, threshold):
         grouped_data[tuple(current_group)] = sum(data[k] for k in current_group)
 
     result = {sum(group) / len(group): value for group, value in grouped_data.items()}
-    max_value = max(result.values())
-    normalized_data = {key: (value / max_value) * 100 for key, value in result.items()}
 
 
-    return normalized_data
+
+    return result
 
 
 if __name__ == '__main__':
+    from b_y_ion import *
+    from visualize_ms import *
+
     isotope_dict = read_isotope_csv("isotope.csv")
-    result = isotope_calculator("SAMPLER", isotope_dict)
+    df, b_frag, y_frag = cal_b_y_ion_mass("SAMPLER")
+
+    b_dict = {}
+    y_dict = {}
+    for pp in b_frag:
+        b_dict.update(isotope_calculator(pp, isotope_dict))
+    for pp1 in y_frag:
+        y_dict.update(isotope_calculator(pp1, isotope_dict))
+
+    plot1 = create_mass_spectrum_plot(b_dict, "red")
+    plot2 = create_mass_spectrum_plot(y_dict, "blue")
+
+    combined_plot_html = superimpose_plots(plot1, plot2)

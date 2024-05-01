@@ -1,7 +1,8 @@
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template_string, Response
 from b_y_ion import *
 from visualize_ms import *
 from b_y_spectrum_data import *
+import pandas as pd
 from bokeh.embed import components
 
 
@@ -83,10 +84,8 @@ def form():
 @app.route('/result', methods=['POST'])
 def handle_result():
     data = request.form['data']
-    # Assume cal_b_y_ion_mass returns results appropriate for rendering
     df, b_frag, y_frag = cal_b_y_ion_mass(data)
     df_html = df.to_html(classes='dataframe', border=0)
-        # Render the HTML with styling and additional tables
     return render_template_string('''
     <!DOCTYPE html>
     <html lang="en">
@@ -131,10 +130,28 @@ def handle_result():
 @app.route('/isotope', methods=['POST'])
 def handle_isotope():
     data = request.form['data']
+
     isotope_dict = read_isotope_csv("isotope.csv")
-    result = isotope_calculator(data, isotope_dict)
-    plot = create_mass_spectrum_plot(result)
-    return plot
+    df, b_frag, y_frag = cal_b_y_ion_mass(data)
+
+    b_dict = {}
+    y_dict = {}
+    for pp in b_frag:
+        b_dict.update(isotope_calculator(pp, isotope_dict))
+    for pp1 in y_frag:
+        y_dict.update(isotope_calculator(pp1, isotope_dict))
+
+    max_b = max(b_dict.values())
+    normalized_b = {key: (value / max_b) * 100 for key, value in b_dict.items()}
+    max_y = max(y_dict.values())
+    normalized_y = {key: (value / max_y) * 100 for key, value in y_dict.items()}
+
+    plot1 = create_mass_spectrum_plot(normalized_b, "red")
+    plot2 = create_mass_spectrum_plot(normalized_y, "blue")
+
+    combined_plot_html = superimpose_plots(plot1, plot2)
+
+    return Response(combined_plot_html, mimetype='text/html')
 
 
 if __name__ == '__main__':
