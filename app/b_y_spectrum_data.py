@@ -1,13 +1,5 @@
-from bokeh.plotting import figure, output_file, show
-from bokeh.models import ColumnDataSource, HoverTool, NumeralTickFormatter, Label
 import pandas as pd
-from numpy import random
 from protein_calculate import *
-from scipy.stats import multinomial
-from itertools import combinations_with_replacement, product
-from collections import Counter
-import numpy as np
-import itertools
 import math
 import itertools
 from collections import defaultdict
@@ -26,39 +18,6 @@ def read_isotope_csv(filename: str) -> dict:
         else:
             isotope_dict[item["Name"]] = [(item["Mass"], item["Abundances"])]
     return isotope_dict
-
-
-# def isotope_weight(peptide:str, isotope_info:dict) -> float:
-#     peptide_atom_counts = peptide_composition(peptide)
-#     print(peptide_atom_counts)
-#     print(isotope_info)
-#
-#     for atom, count in peptide_atom_counts.items():
-#         atom_isotopes = isotope_info[atom]
-
-# distribution = random.multinomial()
-
-
-def isotope_visualize(b_frag: list, y_frag: list, isotope_dict: dict):
-    """
-
-    :param b_frag:
-    :param y_frag:
-    :param isotope_dict:
-    :return:
-    """
-    b_frag = []
-
-
-def spectrum_visualization(b_y_dataframe: pd.DataFrame):
-    """
-    This will take the b_y_fragment dataframe with the isotopic mass dictionary to calculate the peaks of different mass
-    and then use bokeh to visualize it.
-
-    :param b_y_dataframe:
-    :return:
-    """
-    mainTitle = 'Isotope Fragmentation Mass Spectrum'
 
 
 def get_combinations(isotope_num, atom_num):
