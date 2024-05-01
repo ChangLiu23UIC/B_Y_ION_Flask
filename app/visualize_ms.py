@@ -1,78 +1,67 @@
-
-from bokeh.models import HoverTool
-from bokeh.plotting import figure, show
-from bokeh.models import GlyphRenderer, LabelSet, ColumnDataSource
+from bokeh.plotting import figure
+from bokeh.models import ColumnDataSource, LabelSet, HoverTool, WheelZoomTool
 from bokeh.embed import file_html
 from bokeh.resources import CDN
-from bokeh.layouts import gridplot
+
+def superimpose_plots(dict1, dict2, title="B-Y-Ion Mass Spectrum"):
+    all_keys = sorted(set(dict1.keys()).union(dict2.keys()))
+    dict1_vals = [dict1.get(k, 0) for k in all_keys]
+    dict2_vals = [dict2.get(k, 0) for k in all_keys]
 
 
+    source = ColumnDataSource(data=dict(
+        x_values=[x for x in all_keys],
+        reds=dict1_vals,
+        blues=dict2_vals,
+        labels=[str(k) for k in all_keys]
+    ))
 
-def create_mass_spectrum_plot(ms_dict, line_color):
+    p = figure(x_range=(min(all_keys)-20, max(all_keys)+20), title=title, toolbar_location=None, tools="xpan,reset,save")
 
-    masses = list(ms_dict.keys())
-    probabilities = list(ms_dict.values())
+    wheel_zoom_tool = WheelZoomTool(dimensions='width')
+    p.add_tools(wheel_zoom_tool)
+    p.toolbar.active_scroll = wheel_zoom_tool
 
-    source = ColumnDataSource(data={
-        'mass': masses,
-        'probability': probabilities,
-        'mass_text': [f"{mass:.1f}" for mass in masses]  # Text label for each mass
-    })
+    hover = HoverTool(tooltips=[
+        ("Mass", "@x_values"),
+        ("B-Ions", "@reds"),
+        ("Y-Ions", "@blues")
+    ])
+    p.add_tools(hover)
 
-    p = figure(title="Mass Spectrum", x_axis_label='Mass M/z', y_axis_label='Intensity',
-               width=800, height=400, x_range=(min(masses) - 1, max(masses) + 1),
-               y_range=(0, max(probabilities) + max(probabilities) * 0.1))
+    p.vbar(x='x_values', top='reds', width=0.4, source=source, legend_label="B-Ions", color="red", muted_color="red",
+           muted_alpha=0.2)
+    p.vbar(x='x_values', top='blues', width=0.4, source=source, legend_label="Y-Ions", color="blue", muted_color="blue",
+           muted_alpha=0.2)
 
-    p.segment(x0='mass', y0=0, x1='mass', y1='probability', color= line_color, line_width=2, source=source)
+    labels_x = LabelSet(x='x_values', y='reds', text='labels', level='glyph',
+                      x_offset=10, y_offset=5, source=source,
+                      text_font_size="6pt", text_color="black")
+    p.add_layout(labels_x)
 
-    p.add_tools(HoverTool(tooltips=[("Mass", "@mass{0.0}"), ("Probability", "@probability")]))
+    labels_y = LabelSet(x='x_values', y='blues', text='labels', level='glyph',
+                      x_offset=10, y_offset=0, source=source,
+                      text_font_size="6pt", text_color="black")
+    p.add_layout(labels_y)
 
-    labels = LabelSet(x='mass', y='probability', text='mass_text', level='glyph',
-                      x_offset=0, y_offset=5, source=source)
-    p.add_layout(labels)
+    p.xgrid.grid_line_color = None
+    p.y_range.start = 0
+    p.legend.location = "top_right"
+    p.legend.click_policy = "mute"
 
-    return p
-
-
-
-def superimpose_plots(plot1, plot2):
-    """
-    Combine two plots into a single layout.
-
-    Args:
-    plot1 (figure): First Bokeh figure to combine.
-    plot2 (figure): Second Bokeh figure to combine.
-    layout (str): Layout orientation, 'horizontal' or 'vertical'.
-    toolbar_location (str): Location of the toolbar, can be 'above', 'below', 'left', 'right', or 'none'.
-
-    Returns:
-    layout (gridplot): Combined gridplot object.
-    """
-    new_x_start = min(plot1.x_range.start, plot2.x_range.start) - 20
-    new_x_end = max(plot1.x_range.end, plot2.x_range.end) + 20
-
-    combined_plot = figure(title="B-Y-ION Mass Spectrum", x_axis_label=plot1.xaxis[0].axis_label,
-                           y_axis_label=plot1.yaxis[0].axis_label,
-                           x_range=(new_x_start, new_x_end), y_range=plot1.y_range)
-
-    for plot in [plot1, plot2]:
-        for renderer in plot.renderers:
-            if isinstance(renderer, GlyphRenderer):
-                glyph_clone = renderer.glyph.clone()
-                combined_plot.add_glyph(renderer.data_source, glyph_clone)
-
-    combined_plot.tools = plot1.tools + plot2.tools
-
-    html = file_html(combined_plot, CDN)
+    html = file_html(p, CDN)
 
     return html
+
+# Example dictionaries
+dict1 = {100: 30, 200: 0, 300: 90, 400: 80}
+dict2 = {100: 35, 200: 0, 300: 0, 400: 75}
+
+superimpose_plots(dict1, dict2)
 
 
 if __name__ == '__main__':
     ms = {802.4007260000001: 0.6204353503100348, 803.400921: 0.24436153875197233, 804.4029763333333: 0.08038456698870841, 805.399877: 0.010007372238203072}
     mz = {702.4007260000001: 0.6204353503100348, 703.400921: 0.24436153875197233, 704.4029763333333: 0.08038456698870841, 705.399877: 0.010007372238203072}
 
-    plot1 = create_mass_spectrum_plot(ms, "red")
-    plot2 = create_mass_spectrum_plot(mz, "blue")
-
-    dd = superimpose_plots(plot1, plot2)
+    dd = superimpose_plots(ms, mz)

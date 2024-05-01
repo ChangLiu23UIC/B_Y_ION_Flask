@@ -146,10 +146,8 @@ def handle_isotope():
     max_y = max(y_dict.values())
     normalized_y = {key: (value / max_y) * 100 for key, value in y_dict.items()}
 
-    plot1 = create_mass_spectrum_plot(normalized_b, "red")
-    plot2 = create_mass_spectrum_plot(normalized_y, "blue")
 
-    combined_plot_html = superimpose_plots(plot1, plot2)
+    combined_plot_html = superimpose_plots(normalized_b, normalized_y)
 
     return Response(combined_plot_html, mimetype='text/html')
 
