@@ -22,46 +22,61 @@ def form():
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                font-family: Arial, sans-serif;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #f7f7f7;
             }
             form {
-                border: 1px solid #ccc;
-                padding: 20px;
-                box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-                border-radius: 5px;
+                background-color: #fff;
+                border: none;
+                padding: 30px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                border-radius: 10px;
                 display: flex;
                 flex-direction: column;
+                width: 300px;
             }
             input[type="text"] {
                 width: 100%;
-                padding: 10px;
-                margin-bottom: 10px;
-                border: 1px solid #ccc;
-                border-radius: 5px;
+                padding: 12px;
+                margin-bottom: 20px;
+                border: 2px solid #ccc;
+                border-radius: 8px;
+                transition: border-color 0.3s;
+            }
+            input[type="text"]:focus {
+                border-color: #007bff;
+                outline: none;
             }
             input[type="submit"] {
-                width: 100%;
-                padding: 10px;
-                margin-top: 5px;
+                padding: 12px;
                 background-color: #007bff;
                 color: white;
                 border: none;
-                border-radius: 5px;
+                border-radius: 8px;
                 cursor: pointer;
+                transition: background-color 0.3s;
+                margin-bottom: 10px; /* Add spacing between buttons if desired */
             }
             input[type="submit"]:hover {
                 background-color: #0056b3;
+            }
+            input[type="submit"]:first-of-type {
+                background-color: #28a745; /* A green color for the first button */
+            }
+            input[type="submit"]:first-of-type:hover {
+                background-color: #218838; /* Darken the green on hover */
             }
         </style>
     </head>
     <body>
         <form action="/result" method="post">
-            <input type="text" id="data" name="data" placeholder="Enter Peptide Sequence or Sample Data">
+            <input type="text" id="data" name="data" placeholder="Enter Peptide Sequence or Sample Data" oninput="this.value = this.value.toUpperCase()">
             <input type="submit" value="B-Y Ion Separation">
             <input type="submit" formaction="/isotope" value="Isotope Analysis">
         </form>
     </body>
     </html>
+
     '''
     return form_html
 
