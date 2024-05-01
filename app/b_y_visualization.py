@@ -145,12 +145,15 @@ def prob_calc(atom, iso_num, total_num, iso_dict):
     prob_result_list = []
     mass_result_list = []
     for possible_isotopes in get_combinations(diff_num, iso_num):
-        atom_distribution = [total_num-iso_num] + [get_combinations(diff_num, len(iso_dict[atom]))]
-        probability_result = multinomial_probability(total_num, list(zip(atom_distribution, prob_list)))
-        prob_result_list.append(probability_result)
+        atom_distribution = [total_num-iso_num] + possible_isotopes
+        if atom_distribution[0] <0:
+            continue
+        else:
+            probability_result = multinomial_probability(total_num, list(zip(atom_distribution, prob_list)))
+            prob_result_list.append(probability_result)
 
-        mass = sum_of_products(atom_distribution, mass_list)
-        mass_result_list.append(mass)
+            mass = sum_of_products(atom_distribution, mass_list)
+            mass_result_list.append(mass)
 
     return [prob_result_list, mass_result_list]
 
@@ -164,9 +167,11 @@ def isotope_calculator(peptide:str, iso_dict):
         for combs in comb_list:
             # will show how many of the atoms are there ex: [(4,C),(0,H)]
             features = list(zip(combs, atom_list))
-            prob = 1
+            combs_dict = {}
             for iso_num, atom_name in features:
-                prob *= prob_calc(atom_name, iso_num, molecular_dict[atom_name], iso_dict)
+                probs_masses = prob_calc(atom_name, iso_num, molecular_dict[atom_name], iso_dict)
+                combs_dict[atom_name] = probs_masses
+            print(combs_dict)
 
 
 
