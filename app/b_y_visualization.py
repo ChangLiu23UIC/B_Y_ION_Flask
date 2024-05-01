@@ -138,7 +138,14 @@ def sum_of_products(list1, list2):
 
 
 def prob_calc(atom, iso_num, total_num, iso_dict):
+    """
 
+    :param atom:
+    :param iso_num:
+    :param total_num:
+    :param iso_dict:
+    :return:
+    """
     prob_list = [mass[1] for mass in iso_dict[atom]]
     mass_list = [mass[0] for mass in iso_dict[atom]]
     diff_num = len(prob_list)-1
@@ -158,8 +165,52 @@ def prob_calc(atom, iso_num, total_num, iso_dict):
     return [prob_result_list, mass_result_list]
 
 
+def prob_products(nested_list):
+    """
+    Compute all possible products from elements of each sublist in a nested list.
+
+    :param nested_list: A list of lists, where each sublist contains numeric elements.
+    :return: A list of products, one for each combination of elements from the sublists.
+    """
+    # Extract elements from sublists
+    elements = [sublist for sublist in nested_list]
+
+    # Compute the Cartesian product of these elements
+    all_combinations = list(itertools.product(*elements))
+
+    # Calculate the product for each combination
+    products = [math.prod(combination) for combination in all_combinations]
+
+    return products
+
+
+def masses_sums(nested_list):
+    """
+    Compute all possible sums from elements of each sublist in a nested list.
+
+    :param nested_list: A list of lists, where each sublist contains numeric elements.
+    :return: A list of sums, one for each combination of elements from the sublists.
+    """
+    # Extract elements from sublists
+    elements = [sublist for sublist in nested_list]
+
+    # Compute the Cartesian product of these elements
+    all_combinations = list(itertools.product(*elements))
+
+    # Calculate the sum for each combination
+    sums = [sum(combination) for combination in all_combinations]
+
+    return sums
+
 def isotope_calculator(peptide:str, iso_dict):
-    result = {}
+    """
+
+    :param peptide:
+    :param iso_dict:
+    :return:
+    """
+    mass_key = []
+    prob_val = []
     molecular_dict = peptide_composition(peptide)
     for i in range(5):
         comb_list = get_combinations(len(molecular_dict), i)
@@ -171,13 +222,52 @@ def isotope_calculator(peptide:str, iso_dict):
             for iso_num, atom_name in features:
                 probs_masses = prob_calc(atom_name, iso_num, molecular_dict[atom_name], iso_dict)
                 combs_dict[atom_name] = probs_masses
-            print(combs_dict)
+            probs = 1
+            mass = 0
+            probs_prep = []
+            masses_prep = []
+            for atom_final, (probability, masses) in combs_dict.items():
+                probs_prep += [probability]
+                masses_prep += [masses]
 
+            prob_res = prob_products(probs_prep)
+            mass_res = masses_sums(masses_prep)
+
+
+            for mass_name in mass_res:
+                mass_key += [mass_name]
+            for prob_name in prob_res:
+                prob_val += [prob_name]
+
+    results = dict(zip(mass_key, prob_val))
+    filtered_dict = {key: value for key, value in results.items() if value > 0.01}
+    sorted_dict = {key: filtered_dict[key] for key in sorted(filtered_dict)}
+
+    return sorted_dict
+
+
+def average_and_sum_keys(data, threshold):
+    sorted_keys = sorted(data)
+    grouped_data = defaultdict(list)
+    current_group = []
+
+    for key in sorted_keys:
+        if not current_group or key - current_group[-1] <= threshold:
+            current_group.append(key)
+        else:
+            grouped_data[tuple(current_group)] = sum(data[k] for k in current_group)
+            current_group = [key]
+
+    if current_group:
+        grouped_data[tuple(current_group)] = sum(data[k] for k in current_group)
+
+    result = {sum(group) / len(group): value for group, value in grouped_data.items()}
+
+    return result
 
 
 if __name__ == '__main__':
     isotope_dict = read_isotope_csv("isotope.csv")
-    sample = peptide_composition("PEPTIDEMAMIMIASANAGI")
-    # samples = dict_to_formula(sample)
-    # dd = isotope_calculator("SAMPLER", isotope_dict)
+    result = isotope_calculator("SAMPLER", isotope_dict)
+    final_result = average_and_sum_keys(result, 0.01)
     # isotope_weight("PEPTIDE", isotope_dict)
