@@ -13,7 +13,8 @@ def superimpose_plots(dict1, dict2, title="B-Y-Ion Mass Spectrum"):
         x_values=[x for x in all_keys],
         reds=dict1_vals,
         blues=dict2_vals,
-        labels=[str(k) for k in all_keys]
+        labels_x = [k if dict1.get(k, 0) > 0 else " " for k in all_keys],
+        labels_y = [k if dict2.get(k, 0) > 0 else " " for k in all_keys]
     ))
 
     p = figure(x_range=(min(all_keys)-20, max(all_keys)+20), title=title, toolbar_location=None, tools="xpan,reset,save")
@@ -34,14 +35,14 @@ def superimpose_plots(dict1, dict2, title="B-Y-Ion Mass Spectrum"):
     p.vbar(x='x_values', top='blues', width=0.4, source=source, legend_label="Y-Ions", color="blue", muted_color="blue",
            muted_alpha=0.2)
 
-    labels_x = LabelSet(x='x_values', y='reds', text='labels', level='glyph',
+    labels_x = LabelSet(x='x_values', y='reds', text='labels_x', level='glyph',
                       x_offset=10, y_offset=5, source=source,
-                      text_font_size="6pt", text_color="black")
+                      text_font_size="6pt", text_color="red")
     p.add_layout(labels_x)
 
-    labels_y = LabelSet(x='x_values', y='blues', text='labels', level='glyph',
+    labels_y = LabelSet(x='x_values', y='blues', text='labels_y', level='glyph',
                       x_offset=10, y_offset=0, source=source,
-                      text_font_size="6pt", text_color="black")
+                      text_font_size="6pt", text_color="blue")
     p.add_layout(labels_y)
 
     p.xgrid.grid_line_color = None
@@ -52,12 +53,6 @@ def superimpose_plots(dict1, dict2, title="B-Y-Ion Mass Spectrum"):
     html = file_html(p, CDN)
 
     return html
-
-# Example dictionaries
-dict1 = {100: 30, 200: 0, 300: 90, 400: 80}
-dict2 = {100: 35, 200: 0, 300: 0, 400: 75}
-
-superimpose_plots(dict1, dict2)
 
 
 if __name__ == '__main__':

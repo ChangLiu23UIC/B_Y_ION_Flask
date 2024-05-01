@@ -229,19 +229,6 @@ def average_and_sum_keys(data, threshold):
 
 if __name__ == '__main__':
     from b_y_ion import *
-    from visualize_ms import *
 
     isotope_dict = read_isotope_csv("isotope.csv")
     df, b_frag, y_frag = cal_b_y_ion_mass("SAMPLER")
-
-    b_dict = {}
-    y_dict = {}
-    for pp in b_frag:
-        b_dict.update(isotope_calculator(pp, isotope_dict))
-    for pp1 in y_frag:
-        y_dict.update(isotope_calculator(pp1, isotope_dict))
-
-    plot1 = create_mass_spectrum_plot(b_dict, "red")
-    plot2 = create_mass_spectrum_plot(y_dict, "blue")
-
-    combined_plot_html = superimpose_plots(plot1, plot2)
