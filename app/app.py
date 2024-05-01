@@ -2,6 +2,8 @@ from flask import Flask, request, render_template_string
 from b_y_ion import *
 from visualize_ms import *
 from b_y_spectrum_data import *
+from bokeh.embed import components
+
 
 app = Flask(__name__)
 
@@ -28,25 +30,27 @@ def form():
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
             border-radius: 5px;
         }
-        label, input {
+        label, input, a.button {
             display: block;
             width: 100%;
             margin-bottom: 10px;
         }
-        input[type="text"] {
+        input[type="text"], a.button {
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
-        input[type="submit"] {
+        input[type="submit"], a.button {
             padding: 10px 20px;
             background-color: #007bff;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            text-align: center;
+            text-decoration: none;
         }
-        input[type="submit"]:hover {
+        input[type="submit"]:hover, a.button:hover {
             background-color: #0056b3;
         }
     </style>
@@ -57,14 +61,14 @@ def form():
             <input type="text" id="peptide" name="peptide">
             <input type="submit" value="Calculate">
         </form>
+        <a href="/isotope" class="button">Go to Isotope Analysis</a>  <!-- Link styled as button -->
     </body>
     </html>
     '''
     return form_html
 
-
 @app.route('/result', methods=['POST'])
-def result():
+def handle_result():
     try:
         peptide = request.form['peptide']
         df, b_frag, y_frag = cal_b_y_ion_mass(peptide)  # Assume returns DataFrame and lists for b and y ions
@@ -129,65 +133,63 @@ def result():
         return f"Error processing the request: {str(e)}"
 
 
-@app.route('/isotope', methods=['POST'])
-def result():
-    try:
-        sample = request.form['sample']  # Assuming the form has a field for sample input
-        isotope_dict = read_isotope_csv("isotope.csv")
-        result = isotope_calculator(sample, isotope_dict)
+@app.route('/isotope', methods=["GET"])
+def handle_isotope():
+    if request.method == 'GET':
+        try:
+            sample = request.form['sample']
+            isotope_dict = read_isotope_csv("isotope.csv")
+            result = isotope_calculator(sample, isotope_dict)
 
-        # Generate plot
-        plot = create_mass_spectrum_plot(result)
-        script, div = components(plot)
+            plot = create_mass_spectrum_plot(result)
+            script, div = components(plot)
 
-        # Optional: Convert result to DataFrame and then to HTML if needed for display
-        df = pd.DataFrame(result)
-        df_html = df.to_html(classes='dataframe', border=0)
+            df = pd.DataFrame(result)
+            df_html = df.to_html(classes='dataframe', border=0)
 
-        # Render the HTML with both DataFrame and Bokeh plot
-        html = render_template_string('''
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-                body, html {
-                    height: 100%;
-                    margin: 0;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    font-family: Arial, sans-serif;
-                }
-                .dataframe {
-                    border-collapse: collapse;
-                    width: 60%;
-                    margin: auto;
-                }
-                .dataframe, .dataframe th, .dataframe td {
-                    border: 1px solid #ddd;
-                    text-align: left;
-                    padding: 8px;
-                }
-                .dataframe th {
-                    background-color: #f2f2f2;
-                }
-                .dataframe tr:nth-child(even){background-color: #f9f9f9;}
-                .dataframe tr:hover {background-color: #f1f1f1;}
-            </style>
-            {{ script|safe }}
-        </head>
-        <body>
-            {{ div|safe }}
-            {{ table|safe }}
-        </body>
-        </html>
-        ''', script=script, div=div, table=df_html)
+            html = render_template_string('''
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body, html {
+                        height: 100%;
+                        margin: 0;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        font-family: Arial, sans-serif;
+                    }
+                    .dataframe {
+                        border-collapse: collapse;
+                        width: 60%;
+                        margin: auto;
+                    }
+                    .dataframe, .dataframe th, .dataframe td {
+                        border: 1px solid #ddd;
+                        text-align: left;
+                        padding: 8px;
+                    }
+                    .dataframe th {
+                        background-color: #f2f2f2;
+                    }
+                    .dataframe tr:nth-child(even){background-color: #f9f9f9;}
+                    .dataframe tr:hover {background-color: #f1f1f1;}
+                </style>
+                {{ script|safe }}
+            </head>
+            <body>
+                {{ div|safe }}
+                {{ table|safe }}
+            </body>
+            </html>
+            ''', script=script, div=div, table=df_html)
 
-        return html
-    except Exception as e:
-        return f"Error processing the request: {str(e)}"
+            return html
+        except Exception as e:
+            return f"Error processing the request: {str(e)}"
 
 
 if __name__ == '__main__':

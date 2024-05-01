@@ -1,4 +1,6 @@
 from bokeh.plotting import figure, output_file, save
+from bokeh.embed import file_html
+from bokeh.resources import CDN
 from bokeh.models import HoverTool, ColumnDataSource, LabelSet
 
 def create_mass_spectrum_plot(ms_dict, output_path='mass_spectrum.html'):
@@ -25,9 +27,10 @@ def create_mass_spectrum_plot(ms_dict, output_path='mass_spectrum.html'):
     labels = LabelSet(x='mass', y='probability', text='mass_text', level='glyph',
                       x_offset=0, y_offset=5, source=source)
     p.add_layout(labels)
-    save(p)
 
-    return output_path
+    html = file_html(p, CDN, "My plot")
+
+    return p
 
 if __name__ == '__main__':
     ms = {802.4007260000001: 0.6204353503100348, 803.400921: 0.24436153875197233, 804.4029763333333: 0.08038456698870841, 805.399877: 0.010007372238203072}
