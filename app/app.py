@@ -73,7 +73,7 @@ def form():
         <form action="/result" method="post">
             <input type="text" id="data" name="data" placeholder="Enter Peptide Sequence or Sample Data" oninput="this.value = this.value.toUpperCase()">
             <input type="submit" value="B-Y Ion Separation">
-            <input type="submit" formaction="/isotope" value="Isotope Analysis">
+            <input type="submit" formaction="/isotope" value="Isotope Mass Spectrum">
         </form>
     </body>
     </html>
