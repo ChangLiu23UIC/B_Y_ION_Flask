@@ -201,8 +201,9 @@ def isotope_calculator(peptide:str, iso_dict):
     results = dict(zip(mass_key, prob_val))
     filtered_dict = {key: value for key, value in results.items() if value > 0.01}
     sorted_dict = {key: filtered_dict[key] for key in sorted(filtered_dict)}
+    final_result = average_and_sum_keys(sorted_dict, 0.01)
 
-    return sorted_dict
+    return final_result
 
 
 def average_and_sum_keys(data, threshold):
@@ -228,5 +229,3 @@ def average_and_sum_keys(data, threshold):
 if __name__ == '__main__':
     isotope_dict = read_isotope_csv("isotope.csv")
     result = isotope_calculator("SAMPLER", isotope_dict)
-    final_result = average_and_sum_keys(result, 0.01)
-    # isotope_weight("PEPTIDE", isotope_dict)
