@@ -222,8 +222,11 @@ def average_and_sum_keys(data, threshold):
         grouped_data[tuple(current_group)] = sum(data[k] for k in current_group)
 
     result = {sum(group) / len(group): value for group, value in grouped_data.items()}
+    max_value = max(result.values())
+    normalized_data = {key: (value / max_value) * 100 for key, value in result.items()}
 
-    return result
+
+    return normalized_data
 
 
 if __name__ == '__main__':
