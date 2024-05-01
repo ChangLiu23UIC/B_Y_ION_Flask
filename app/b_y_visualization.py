@@ -121,11 +121,38 @@ def multinomial_probability(n, outcomes):
     return multinomial_prob
 
 
+def sum_of_products(list1, list2):
+    """
+    Calculate the sum of products of corresponding elements from two lists.
+
+    :param list1: First list of numbers
+    :param list2: Second list of numbers
+    :return: Sum of products of corresponding elements
+    """
+    if len(list1) != len(list2):
+        raise ValueError("Both lists must have the same length.")
+
+    # Calculate sum of products using a list comprehension and sum function
+    result = sum(x * y for x, y in zip(list1, list2))
+    return result
+
+
 def prob_calc(atom, iso_num, total_num, iso_dict):
 
     prob_list = [mass[1] for mass in iso_dict[atom]]
-    diff_num  = len(prob_list)-1
-    atom_comb = get_combinations(diff_num, iso_num)
+    mass_list = [mass[0] for mass in iso_dict[atom]]
+    diff_num = len(prob_list)-1
+    prob_result_list = []
+    mass_result_list = []
+    for possible_isotopes in get_combinations(diff_num, iso_num):
+        atom_distribution = [total_num-iso_num] + [get_combinations(diff_num, len(iso_dict[atom]))]
+        probability_result = multinomial_probability(total_num, list(zip(atom_distribution, prob_list)))
+        prob_result_list.append(probability_result)
+
+        mass = sum_of_products(atom_distribution, mass_list)
+        mass_result_list.append(mass)
+
+    return [prob_result_list, mass_result_list]
 
 
 def isotope_calculator(peptide:str, iso_dict):
@@ -137,6 +164,10 @@ def isotope_calculator(peptide:str, iso_dict):
         for combs in comb_list:
             # will show how many of the atoms are there ex: [(4,C),(0,H)]
             features = list(zip(combs, atom_list))
+            prob = 1
+            for iso_num, atom_name in features:
+                prob *= prob_calc(atom_name, iso_num, molecular_dict[atom_name], iso_dict)
+
 
 
 if __name__ == '__main__':
