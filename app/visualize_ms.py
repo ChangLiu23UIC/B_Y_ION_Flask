@@ -17,7 +17,8 @@ def superimpose_plots(dict1, dict2, title="B-Y-Ion Mass Spectrum"):
         labels_y = [k if dict2.get(k, 0) > 0 else " " for k in all_keys]
     ))
 
-    p = figure(x_range=(min(all_keys)-20, max(all_keys)+20), title=title, toolbar_location=None, tools="xpan,reset,save")
+    p = figure(x_range=(min(all_keys)-20, max(all_keys)+20), title=title, toolbar_location=None,
+               tools="xpan,reset,save", x_axis_label = "Mass M/z", y_axis_label = "Intensity" )
 
     wheel_zoom_tool = WheelZoomTool(dimensions='width')
     p.add_tools(wheel_zoom_tool)
