@@ -39,7 +39,7 @@ def cal_b_y_ion_mass(peptide):
 
     df = pd.DataFrame(info_table, columns = ["Seq", "#", "B", "Y", "#(+1)"])
 
-    b_fragments = [peptide[:i] for i in range(1, len(peptide) + 1)]
+    b_fragments = [peptide[:i] for i in range(1, len(peptide))]
     y_fragments = [peptide[-i:] for i in range(1, len(peptide))]
 
     return df, b_fragments, y_fragments
