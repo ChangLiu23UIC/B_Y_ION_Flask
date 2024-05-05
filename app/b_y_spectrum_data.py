@@ -104,6 +104,7 @@ def prob_calc(atom, iso_num, total_num, iso_dict):
     :param iso_dict:
     :return:
     """
+    # Enumerate all the masses and possibliliteis for the isotope information
     prob_list = [mass[1] for mass in iso_dict[atom]]
     mass_list = [mass[0] for mass in iso_dict[atom]]
     diff_num = len(prob_list)-1
@@ -221,8 +222,6 @@ def average_and_sum_keys(data, threshold):
         grouped_data[tuple(current_group)] = sum(data[k] for k in current_group)
 
     result = {sum(group) / len(group): value for group, value in grouped_data.items()}
-
-
 
     return result
 
